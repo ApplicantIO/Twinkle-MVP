@@ -1,4 +1,4 @@
-f# 🚀 Quick Start Guide
+# 🚀 Quick Start Guide
 
 Follow these steps to get Twinkle MVP running on your machine.
 
