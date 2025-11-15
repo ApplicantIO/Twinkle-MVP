@@ -2,13 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
+// Next.js Route Handlers uchun aniq type belgilash
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext // O'zgartirildi: params o'rniga context ishlatiladi
 ) {
+  const { id } = context.params; // ID ni context.params dan olamiz
+  
   try {
     const video = await prisma.video.findUnique({
-      where: { id: params.id },
+      where: { id: id }, // params.id o'rniga to'g'ri id ishlatildi
       include: {
         user: {
           select: {
@@ -31,7 +40,7 @@ export async function GET(
 
     // Increment view count
     await prisma.video.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { views: { increment: 1 } },
     });
 
@@ -42,7 +51,7 @@ export async function GET(
     
     await prisma.analytics.create({
       data: {
-        videoId: params.id,
+        videoId: id,
         viewerIp: clientIp,
       },
     });
@@ -59,8 +68,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext // O'zgartirildi
 ) {
+  const { id } = context.params; // ID ni context.params dan olamiz
+  
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
 
@@ -73,7 +84,7 @@ export async function PATCH(
 
     const payload = verifyToken(token);
     const video = await prisma.video.findUnique({
-      where: { id: params.id },
+      where: { id: id }, // params.id o'rniga id ishlatildi
     });
 
     if (!video) {
@@ -99,7 +110,7 @@ export async function PATCH(
     const { title, description, category } = await request.json();
 
     const updated = await prisma.video.update({
-      where: { id: params.id },
+      where: { id: id }, // params.id o'rniga id ishlatildi
       data: {
         title: title || video.title,
         description: description !== undefined ? description : video.description,
@@ -128,8 +139,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext // O'zgartirildi
 ) {
+  const { id } = context.params; // ID ni context.params dan olamiz
+  
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
 
@@ -142,7 +155,7 @@ export async function DELETE(
 
     const payload = verifyToken(token);
     const video = await prisma.video.findUnique({
-      where: { id: params.id },
+      where: { id: id }, // params.id o'rniga id ishlatildi
     });
 
     if (!video) {
@@ -166,7 +179,7 @@ export async function DELETE(
     }
 
     await prisma.video.delete({
-      where: { id: params.id },
+      where: { id: id }, // params.id o'rniga id ishlatildi
     });
 
     return NextResponse.json({ success: true });
@@ -178,4 +191,3 @@ export async function DELETE(
     );
   }
 }
-
